@@ -31,8 +31,5 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release --no-build --output ./artifacts
 
-    - name: Publish to NuGet
-      uses: nuget/setup-nuget@v1
-
     - name: Push to NuGet
-      run: nuget push ./artifacts/*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+      run: dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --interactive
