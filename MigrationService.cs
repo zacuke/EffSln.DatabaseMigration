@@ -22,13 +22,12 @@ public class MigrationService(
         var path = Path.Combine(AppContext.BaseDirectory, options.ScriptFolder);
         logger.LogInformation("Deploying scripts {path}", path);
  
-        foreach (var connectionStringName in options.ConnectionStringNames)
-        {        
-            await scope.RunMigrateAsync(options, 
-                logger, 
-                configuration.GetConnectionString(connectionStringName) 
-                    ?? throw new Exception(connectionStringName + " not found"), 
-                connectionStringName, path);
+        foreach (var connStrName in options.ConnectionStringNames)
+        {
+            var connStr = configuration.GetConnectionString(connStrName)
+                ?? throw new Exception(connStrName + " not found");
+
+            await scope.RunMigrateAndScriptsAsync(options, logger, connStr, connStrName, path);
         }
     }
 
