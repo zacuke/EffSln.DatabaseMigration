@@ -8,6 +8,9 @@ on:
 
 jobs:
   build-and-publish:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
 
     steps:
@@ -31,5 +34,10 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release --no-build --output ./artifacts
 
+    - name: NuGet login
+      uses: NuGet/login@v1
+      with:
+        user: zacuke
+
     - name: Push to NuGet
-      run: dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --interactive
+      run: dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ env.NUGET_API_KEY }}
