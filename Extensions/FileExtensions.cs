@@ -1,0 +1,32 @@
+﻿using Npgsql;
+
+namespace EffSln.DatabaseMigration.Extensions
+{
+    public static class FileExtensions
+    {
+
+        public static void RunSqlScripts(this string connString, string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                return;
+            }
+
+            using var conn = new NpgsqlConnection(connString);
+            conn.Open();
+
+            var files = Directory.GetFiles(folderPath, "*.sql");
+            if (files.Length == 0)
+            {
+                return;
+            }
+
+            foreach (var file in files)
+            {
+                var sql = File.ReadAllText(file);
+                using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+}
