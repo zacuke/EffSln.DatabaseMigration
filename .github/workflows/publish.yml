@@ -49,6 +49,7 @@ jobs:
 
       - name: Create GitHub Release
         id: create
+        if: success()
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -87,7 +88,7 @@ jobs:
       run: |
         version="${{ needs.create-release.outputs.tag_name }}"
         version=${version#v}
-        dotnet pack src/EffSln.DatabaseMigration.csproj --configuration Release --no-build --output ./artifacts --version $version
+        dotnet pack src/EffSln.DatabaseMigration.csproj --configuration Release --no-build --output ./artifacts -p:Version=$version
 
     - name: NuGet login
       uses: NuGet/login@v1
@@ -97,3 +98,9 @@ jobs:
 
     - name: Push to NuGet
       run: dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+
+    - name: Cleanup on failure
+      if: failure()
+      run: |
+        echo "Build failed, cleaning up tag ${{ needs.create-release.outputs.tag_name }}"
+        git push --delete origin ${{ needs.create-release.outputs.tag_name }} || true
