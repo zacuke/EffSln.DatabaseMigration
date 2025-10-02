@@ -1,16 +1,65 @@
-name: Publish to NuGet
+name: Build, Release, and Publish
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create.outputs.upload_url }}
+      tag_name: ${{ steps.bump_tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest=$latest_tag" >> $GITHUB_OUTPUT
+
+      - name: Bump Tag
+        id: bump_tag
+        run: |
+          old="${{ steps.get_tag.outputs.latest }}"
+          base="${old#v}"
+          IFS='.' read -r major minor patch <<< "$base"
+          patch=$((patch+1))
+          new="v$major.$minor.$patch"
+          echo "tag=$new" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          tag="${{ steps.bump_tag.outputs.tag }}"
+          git tag "$tag"
+          git push origin "$tag"
+
+      - name: Create GitHub Release
+        id: create
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.bump_tag.outputs.tag }}
+          release_name: Release ${{ steps.bump_tag.outputs.tag }}
+          draft: false
+          prerelease: false
+
   build-and-publish:
-    permissions:
-      contents: read
-      id-token: write
+    needs: create-release
     runs-on: ubuntu-latest
 
     steps:
@@ -31,8 +80,11 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
 
-    - name: Pack
-      run: dotnet pack --configuration Release --no-build --output ./artifacts
+    - name: Pack with version
+      run: |
+        version="${{ needs.create-release.outputs.tag_name }}"
+        version=${version#v}
+        dotnet pack --configuration Release --no-build --output ./artifacts --version $version
 
     - name: NuGet login
       uses: NuGet/login@v1

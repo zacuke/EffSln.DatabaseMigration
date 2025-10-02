@@ -54,3 +54,11 @@ services.AddDatabaseMigration(o =>
 });
 ```
 
+
+## Development
+
+Build this repo in visual studio then you can reference it in another project like this:
+```powershell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.nuget\packages\EffSln.DatabaseMigration"
+dotnet add package EffSln.DatabaseMigration --source C:\src\EffSln.DatabaseMigration\bin\Debug
+```

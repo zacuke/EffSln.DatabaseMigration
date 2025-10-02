@@ -8,12 +8,11 @@
     <Title>EffSln Database Migration</Title>
     <Description>Automatic database migrations and SQL script execution for ASP.NET Core applications</Description>
     <PackageId>EffSln.DatabaseMigration</PackageId>
-    <PackageVersion>1.0.1</PackageVersion>
     <Authors>EffSln</Authors>
     <PackageTags>database;migration;efcore;postgresql;sql</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/zacuke/EffSln.DatabaseMigration</RepositoryUrl>
-  
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
  
@@ -24,6 +23,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
   </ItemGroup>
- 
-
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
