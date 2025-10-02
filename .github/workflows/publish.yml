@@ -80,11 +80,14 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
 
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
+
     - name: Pack with version
       run: |
         version="${{ needs.create-release.outputs.tag_name }}"
         version=${version#v}
-        dotnet pack --configuration Release --no-build --output ./artifacts --version $version
+        dotnet pack src/EffSln.DatabaseMigration.csproj --configuration Release --no-build --output ./artifacts --version $version
 
     - name: NuGet login
       uses: NuGet/login@v1
